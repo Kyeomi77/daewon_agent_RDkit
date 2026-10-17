@@ -2,37 +2,102 @@ openapi: 3.0.3
 info:
   title: RDKit Conversion API
   description: SMILES 문자열을 InChI 및 InChIKey로 변환하는 화학 정보학 도구
-  version: 1.0.0
+  version: 1.0.1
 servers:
+  # 배포 후 `gcloud run services describe` 로 확인한 실제 URL로 교체
   - url: https://rdkit-service-925869106357.asia-northeast3.run.app
+security:
+  - cloudRunIdToken: []
 paths:
+  /health:
+    get:
+      summary: 서비스 상태 확인
+      operationId: healthCheck
+      responses:
+        "200":
+          description: 정상
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  inchi_available:
+                    type: boolean
   /convert:
     post:
       summary: SMILES를 InChI 및 InChIKey로 변환
+      description: >-
+        분자 구조를 나타내는 SMILES 문자열을 받아 표준 InChI, InChIKey,
+        canonical SMILES를 반환한다. 화합물 식별자 변환이나 중복 구조 확인이 필요할 때 사용한다.
       operationId: convertSmiles
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - smiles
-              properties:
-                smiles:
-                  type: string
-                  description: 유효한 SMILES 문자열 (예: C1=CC=CC=C1)
+              $ref: "#/components/schemas/ConversionRequest"
+            example:
+              smiles: "CC(=O)OC1=CC=CC=C1C(=O)O"
       responses:
         "200":
           description: 성공적인 변환 결과
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  smiles:
-                    type: string
-                  inchi:
-                    type: string
-                  inchikey:
-                    type: string
+                $ref: "#/components/schemas/ConversionResponse"
+        "400":
+          description: 유효하지 않은 SMILES
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: 요청 본문 검증 실패 (smiles 누락, 길이 초과 등)
+        "500":
+          description: 변환 중 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    cloudRunIdToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cloud Run 서비스 URL을 audience로 발급한 Google ID 토큰
+  schemas:
+    ConversionRequest:
+      type: object
+      required:
+        - smiles
+      properties:
+        smiles:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          # 원본 오류 수정: 따옴표 없는 값 안의 "예: " 콜론 때문에 YAML 파싱 실패
+          description: "유효한 SMILES 문자열 (예: C1=CC=CC=C1)"
+    ConversionResponse:
+      type: object
+      required: [smiles, canonical_smiles, inchi, inchikey]
+      properties:
+        smiles:
+          type: string
+          description: 입력 SMILES (공백 제거)
+        canonical_smiles:
+          type: string
+          description: RDKit canonical SMILES
+        inchi:
+          type: string
+          description: 표준 InChI
+        inchikey:
+          type: string
+          description: 27자 InChIKey
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
