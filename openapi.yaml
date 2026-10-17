@@ -4,7 +4,7 @@ info:
   description: SMILES 문자열을 InChI 및 InChIKey로 변환하는 화학 정보학 도구
   version: 1.0.0
 servers:
-  - url: https://rdkit-service-xxxx-an.a.run.app
+  - url: https://rdkit-service-925869106357.asia-northeast3.run.app
 paths:
   /convert:
     post:
