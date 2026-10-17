@@ -18,7 +18,7 @@ GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
 storage_client = storage.Client() if GCS_BUCKET_NAME else None
 
 class ConversionRequest(BaseModel):
-    smiles: str = Field(..., description="변환할 유효한 SMILES 문자열", example="CC(=O)OC1=CC=CC=C1C(=O)O")
+    smiles: str = Field(..., description="변환할 유효한 SMILES 문자열", json_schema_extra={"examples": ["CC(=0)OC1=CC=CC=C1C(=0)0"]})
 
 class ConversionResponse(BaseModel):
     smiles: str
