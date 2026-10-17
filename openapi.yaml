@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: RDKit Conversion API
+  description: SMILES 문자열을 InChI 및 InChIKey로 변환하는 화학 정보학 도구
+  version: 1.0.0
+servers:
+  - url: https://rdkit-service-xxxx-an.a.run.app
+paths:
+  /convert:
+    post:
+      summary: SMILES를 InChI 및 InChIKey로 변환
+      operationId: convertSmiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - smiles
+              properties:
+                smiles:
+                  type: string
+                  description: 유효한 SMILES 문자열 (예: C1=CC=CC=C1)
+      responses:
+        "200":
+          description: 성공적인 변환 결과
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  smiles:
+                    type: string
+                  inchi:
+                    type: string
+                  inchikey:
+                    type: string
