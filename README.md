@@ -82,7 +82,7 @@ gcloud storage ls "gs://${BUCKET_NAME}/conversions/**"
 ## 4. ADK 에이전트 로컬 테스트
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r rdkit_agent/requirements.txt
 cp rdkit_agent/.env.example rdkit_agent/.env   # RDKIT_SERVICE_URL 수정
 gcloud auth application-default login
