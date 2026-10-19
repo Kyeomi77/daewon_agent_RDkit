@@ -5,7 +5,7 @@ info:
   version: 1.0.1
 servers:
   # 배포 후 `gcloud run services describe` 로 확인한 실제 URL로 교체
-  - url: https://rdkit-service-925869106357.asia-northeast3.run.app
+  - url: https://rdkit-service-wlzvi34knq-du.a.run.app
 security:
   - cloudRunIdToken: []
 paths:
