@@ -14,7 +14,7 @@ rdkit-cloudrun-service/
 │   └── .env.example
 ├── deploy_agent.py       # Agent Engine 배포
 └── register_agent.sh     # Gemini Enterprise 등록 (REST)
-```
+
 
 호출 흐름: Gemini Enterprise 웹앱 → ADK 에이전트(Vertex AI Agent Engine) → Function Calling(`convert_smiles`) → Cloud Run(ID 토큰 인증) → RDKit 변환 → GCS 저장
 
@@ -77,13 +77,16 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 gcloud storage ls "gs://${BUCKET_NAME}/conversions/**"
 ```
 
-`openapi.yaml`의 `servers.url`을 위 URL로 맞춘다.
-
 ## 4. ADK 에이전트 로컬 테스트
-
 ```bash
+# 가상환경 및 의존성
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r rdkit_agent/requirements.txt
+
+# 배포 시 사용할 인증 (로컬 ADC)
+gcloud auth application-default login
+gcloud auth application-default set-quota-project "$PROJECT_ID"
+
 cp rdkit_agent/.env.example rdkit_agent/.env   # RDKIT_SERVICE_URL 수정
 gcloud auth application-default login
 adk web      # 브라우저에서 rdkit_agent 선택 후 "아스피린 SMILES를 InChIKey로 바꿔줘"
