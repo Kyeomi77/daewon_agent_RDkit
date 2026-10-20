@@ -28,6 +28,7 @@ export BUCKET_NAME="${PROJECT_ID}-rdkit-storage"
 export RUN_SA="rdkit-run-sa@${PROJECT_ID}.iam.gserviceaccount.com"
 export AGENT_LOCATION="us-central1"
 export STAGING_BUCKET="gs://${PROJECT_ID}-agent-staging"
+export PROJECT_NUMBER="925869106357"
 
 gcloud config set project "$PROJECT_ID"
 export PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
@@ -80,47 +81,56 @@ gcloud storage ls "gs://${BUCKET_NAME}/conversions/**"
 ## 4. ADK 에이전트 로컬 테스트
 ```bash
 # 가상환경 및 의존성
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv //Users/jameskim/Downloads/TKCO/daewon_agent_RDKit/.venv && source /Users/jameskim/Downloads/TKCO/daewon_agent_RDKit/.venv/bin/activate
 pip install -r rdkit_agent/requirements.txt
+#   note: This error originates from a subprocess, and is likely not a problem #.  with pip.
+#ERROR: Failed building wheel for cryptography
+#Failed to build cryptography
+#error: failed-wheel-build-for-install 
+# pip install --only-binary=:all: cryptography
 
 # 배포 시 사용할 인증 (로컬 ADC)
 gcloud auth application-default login
 gcloud auth application-default set-quota-project "$PROJECT_ID"
 
-cp rdkit_agent/.env.example rdkit_agent/.env   # RDKIT_SERVICE_URL 수정
-gcloud auth application-default login
-adk web      # 브라우저에서 rdkit_agent 선택 후 "아스피린 SMILES를 InChIKey로 바꿔줘"
+# 배포 (실제 서비스 URL을 그대로 전달)
+export RDKIT_SERVICE_URL="https://rdkit-service-wlzvi34knq-du.a.run.app"
+python3 deploy_agent.py
+export REASONING_ENGINE="projects/925869106357/locations/us-central1/reasoningEngines/6718548484217110528"
+#Deployed: projects/925869106357/locations/us-central1/reasoningEngines/6718548484217110528
+#gcloud auth application-default login
+#adk web      # 브라우저에서 rdkit_agent 선택 후 "아스피린 SMILES를 InChIKey로 바꿔줘"
 ```
-
-로컬의 사용자 ADC로는 `fetch_id_token`이 실패할 수 있다. 그 경우 서비스 계정 가장(impersonation)을 쓰거나 바로 5단계로 진행한다.
-
 ## 5. Agent Engine 배포 및 Cloud Run 호출 권한
-
-```bash
-gcloud storage buckets create "$STAGING_BUCKET" --location="$AGENT_LOCATION"
-python deploy_agent.py
-# 출력: Deployed: projects/<번호>/locations/us-central1/reasoningEngines/<ID>
-export REASONING_ENGINE="projects/.../locations/us-central1/reasoningEngines/<ID>"
-
+# PROJECT_NUMBER 설정
+export PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
 # Agent Engine 서비스 에이전트에 Cloud Run 호출 권한 부여
 gcloud run services add-iam-policy-binding "$SERVICE_NAME" --region "$REGION" \
   --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-aiplatform-re.iam.gserviceaccount.com" \
   --role="roles/run.invoker"
 ```
-
-## 6. Gemini Enterprise 등록
-
+## 6. 배포된 에이전트를 직접 테스트 (Gemini Enterprise 등록 전)
+python3 - << EOF
+import vertexai
+from vertexai import agent_engines
+vertexai.init(project="$PROJECT_ID", location="$AGENT_LOCATION")
+app = agent_engines.get("$REASONING_ENGINE")
+for ev in app.stream_query(user_id="test", message="아스피린 SMILES CC(=O)OC1=CC=CC=C1C(=O)O 를 InChIKey로 변환해줘"):
+    print(ev)
+EOF
+```
+## 7. Gemini Enterprise 등록
 콘솔: Google Cloud 콘솔 → Gemini Enterprise → 대상 앱 → 에이전트 → 에이전트 추가 → "Custom agent via Agent Engine" → 이름/설명 입력, Reasoning Engine 경로에 `$REASONING_ENGINE` 입력 → 저장. 사용자 OAuth 위임이 필요 없으므로 승인(Authorization) 단계는 건너뛴다.
 
 REST:
 
-```bash
-APP_ID=<앱ID> GE_LOCATION=global ./register_agent.sh
+```bash 
+APP_ID=daewonpharm-rd-ge_2026101900001 GE_LOCATION=global ./register_agent.sh
 ```
 
 등록 후 에이전트 상태를 Enabled로 바꾸면 Gemini Enterprise 웹앱의 에이전트 갤러리에 표시된다.
 
-## 7. 문제 해결
+## 8. 문제 해결
 
 | 증상 | 원인 / 조치 |
 |---|---|
