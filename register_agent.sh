@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash - 20261020 new
 # Agent Engine에 배포한 ADK 에이전트를 Gemini Enterprise 앱에 등록 (REST API 방식)
 # 콘솔에서 등록할 경우 이 스크립트는 필요 없음.
 set -euo pipefail

@@ -1,4 +1,4 @@
-# RDKit SMILES 변환 서비스 + Gemini Enterprise 연동
+# RDKit SMILES 변환 서비스 + Gemini Enterprise 연동 - 20261020 new
 
 ```
 rdkit-cloudrun-service/

@@ -1,4 +1,4 @@
-"""Gemini Enterprise에 등록할 ADK 에이전트.
+"""Gemini Enterprise에 등록할 ADK 에이전트. - 20261020 new
 
 Cloud Run RDKit 서비스를 Function Calling 도구로 호출한다.
 Agent Engine에서 실행될 때는 메타데이터 서버를 통해 ID 토큰을 자동 발급받는다.

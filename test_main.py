@@ -1,4 +1,4 @@
-"""main.py 로컬 테스트 (pytest + FastAPI TestClient)
+"""main.py 로컬 테스트 (pytest + FastAPI TestClient) - 20261020 new
 
 실행: pytest -v
 GCS_BUCKET_NAME 환경변수가 없으면 GCS 업로드는 자동으로 건너뜁니다.

@@ -1,4 +1,4 @@
-"""ADK 에이전트를 Vertex AI Agent Engine에 배포한다.
+"""ADK 에이전트를 Vertex AI Agent Engine에 배포한다. - 20261020 new
 
 사용: python deploy_agent.py
 출력되는 resource name(projects/.../reasoningEngines/ID)을 Gemini Enterprise 등록에 사용.
