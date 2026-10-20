@@ -81,7 +81,7 @@ gcloud storage ls "gs://${BUCKET_NAME}/conversions/**"
 ## 4. ADK 에이전트 로컬 테스트
 ```bash
 # 가상환경 및 의존성
-python3 -m venv //Users/jameskim/Downloads/TKCO/daewon_agent_RDKit/.venv && source /Users/jameskim/Downloads/TKCO/daewon_agent_RDKit/.venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r rdkit_agent/requirements.txt
 #   note: This error originates from a subprocess, and is likely not a problem #.  with pip.
 #ERROR: Failed building wheel for cryptography
@@ -96,8 +96,8 @@ gcloud auth application-default set-quota-project "$PROJECT_ID"
 # 배포 (실제 서비스 URL을 그대로 전달)
 export RDKIT_SERVICE_URL="https://rdkit-service-wlzvi34knq-du.a.run.app"
 python3 deploy_agent.py
-export REASONING_ENGINE="projects/925869106357/locations/us-central1/reasoningEngines/6718548484217110528"
-#Deployed: projects/925869106357/locations/us-central1/reasoningEngines/6718548484217110528
+export REASONING_ENGINE="projects/925869106357/locations/us-central1/reasoningEngines/1102594933258190848"
+#Deployed: projects/925869106357/locations/us-central1/reasoningEngines/1102594933258190848
 #gcloud auth application-default login
 #adk web      # 브라우저에서 rdkit_agent 선택 후 "아스피린 SMILES를 InChIKey로 바꿔줘"
 ```
