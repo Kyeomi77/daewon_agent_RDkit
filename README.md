@@ -110,22 +110,55 @@ gcloud run services add-iam-policy-binding "$SERVICE_NAME" --region "$REGION" \
   --role="roles/run.invoker"
 ```
 ## 6. 배포된 에이전트를 직접 테스트 (Gemini Enterprise 등록 전)
-python3 - << EOF
+python3 - << 'EOF'
+import os
 import vertexai
 from vertexai import agent_engines
-vertexai.init(project="$PROJECT_ID", location="$AGENT_LOCATION")
-app = agent_engines.get("$REASONING_ENGINE")
-for ev in app.stream_query(user_id="test", message="아스피린 SMILES CC(=O)OC1=CC=CC=C1C(=O)O 를 InChIKey로 변환해줘"):
-    print(ev)
+
+vertexai.init(project=os.environ["PROJECT_ID"], location=os.environ["AGENT_LOCATION"])
+# 1) 배포된 에이전트 목록 조회
+agents = list(agent_engines.list())
+print(f"=== {os.environ['AGENT_LOCATION']} 에 배포된 에이전트: {len(agents)}개 ===")
+for a in agents:
+    print(" -", a.display_name, "→", a.resource_name)
+
+if not agents:
+    raise SystemExit("배포된 에이전트가 없습니다. deploy_agent.py 를 먼저 실행하세요.")
+
+# 2) RDKit 에이전트 자동 선택 (없으면 가장 최근 것)
+target = next((a for a in agents if "RDKit" in (a.display_name or "")), agents[0])
+print("\n>>> 테스트 대상:", target.resource_name)
+print(f'>>> 다음 단계용: export REASONING_ENGINE="{target.resource_name}"\n')
+
+# 3) 테스트 질의
+msg = "아스피린 SMILES CC(=O)OC1=CC=CC=C1C(=O)O 를 InChIKey로 변환해줘"
+for ev in target.stream_query(user_id="test", message=msg):
+    for part in ev.get("content", {}).get("parts", []):
+        if "function_call" in part:
+            print("[도구 호출]", part["function_call"])
+        elif "function_response" in part:
+            print("[도구 결과]", part["function_response"])
+        elif "text" in part:
+            print("[답변]", part["text"])
 EOF
 ```
 ## 7. Gemini Enterprise 등록
 콘솔: Google Cloud 콘솔 → Gemini Enterprise → 대상 앱 → 에이전트 → 에이전트 추가 → "Custom agent via Agent Engine" → 이름/설명 입력, Reasoning Engine 경로에 `$REASONING_ENGINE` 입력 → 저장. 사용자 OAuth 위임이 필요 없으므로 승인(Authorization) 단계는 건너뛴다.
 
-REST:
+# Gemini Enterprise에 앱이 있는지 여부 확인
+curl -s \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "X-Goog-User-Project: ${PROJECT_ID}" \
+  "https://discoveryengine.googleapis.com/v1alpha/projects/${PROJECT_ID}/locations/global/collections/default_collection/engines?pageSize=200" \
+| python3 -c "
+import sys, json
+for e in json.load(sys.stdin).get('engines', []):
+    i = e['name'].split('/')[-1]; n = e.get('displayName','')
+    if 'daewon' in (i+n).lower(): print('APP_ID =', i, '| 이름 =', n)"
+
 
 ```bash 
-APP_ID=daewonpharm-rd-ge_2026101900001 GE_LOCATION=global ./register_agent.sh
+./register_agent.sh
 ```
 
 등록 후 에이전트 상태를 Enabled로 바꾸면 Gemini Enterprise 웹앱의 에이전트 갤러리에 표시된다.

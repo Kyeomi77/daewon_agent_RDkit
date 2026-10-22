@@ -1,12 +1,12 @@
-#!/usr/bin/env bash - 20261020 new
+#!/usr/bin/env bash 
 # Agent Engine에 배포한 ADK 에이전트를 Gemini Enterprise 앱에 등록 (REST API 방식)
 # 콘솔에서 등록할 경우 이 스크립트는 필요 없음.
 set -euo pipefail
 
-PROJECT_ID="${PROJECT_ID:-uk-adc-core-geminienterprise}"
-APP_ID="${APP_ID:?Gemini Enterprise 앱 ID를 지정하세요}"           # 콘솔 > Gemini Enterprise > 앱 목록의 ID
-GE_LOCATION="${GE_LOCATION:-global}"                               # 앱 생성 위치: global / us / eu
-REASONING_ENGINE="${REASONING_ENGINE:?projects/.../locations/.../reasoningEngines/ID}"
+PROJECT_ID="uk-adc-core-geminienterprise"
+APP_ID="daewonpharm-rd-ge_1787731379225"           # 콘솔 > Gemini Enterprise > 앱 목록의 ID
+GE_LOCATION="global"                               # 앱 생성 위치: global / us / eu
+REASONING_ENGINE="projects/925869106357/locations/us-central1/reasoningEngines/1102594933258190848"
 
 if [[ "$GE_LOCATION" == "global" ]]; then
   ENDPOINT="https://discoveryengine.googleapis.com"
